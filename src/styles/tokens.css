@@ -1,0 +1,10 @@
+:root {
+  --surface-canvas: #f8f7f4;
+  --surface-raised: rgba(255, 255, 255, 0.82);
+  --text-primary: #171719;
+  --text-secondary: #6d6b68;
+  --border-subtle: #e8e5df;
+  --accent-primary: #2463eb;
+  --accent-soft: #eaf1ff;
+  --shadow-float: 0 24px 72px rgba(39, 36, 30, 0.09);
+}
