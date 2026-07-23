@@ -43,33 +43,148 @@ a {
 }
 
 .auth-canvas {
-  background:
-    radial-gradient(circle at 8% 6%, rgba(126, 158, 245, 0.12), transparent 23rem),
-    radial-gradient(circle at 94% 92%, rgba(248, 202, 139, 0.12), transparent 26rem),
-    var(--surface-canvas);
+  background: #edf0f5;
 }
 
-.auth-preview-glow {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(1px);
-  opacity: 0.62;
+.auth-mosaic {
+  display: grid;
+  width: min(100%, 31rem);
+  aspect-ratio: 1;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: 2px;
+  overflow: hidden;
+  background: #fbfbfa;
 }
 
-.auth-preview-glow-one {
-  top: -12rem;
-  right: -11rem;
-  width: 29rem;
-  height: 29rem;
-  background: radial-gradient(circle at 42% 42%, rgba(130, 159, 245, 0.52), transparent 64%);
+.auth-mosaic-cell {
+  min-width: 0;
+  min-height: 0;
+  background: #fffdf9;
 }
 
-.auth-preview-glow-two {
-  bottom: -13rem;
-  left: -12rem;
-  width: 27rem;
-  height: 27rem;
-  background: radial-gradient(circle at 60% 45%, rgba(249, 202, 137, 0.38), transparent 67%);
+.auth-mosaic-cell:nth-child(1) {
+  background: #fac36f;
+  border-radius: 100% 0 0;
+}
+
+.auth-mosaic-cell:nth-child(2) {
+  background: #ffdbad;
+  border-radius: 0 100% 0 0;
+}
+
+.auth-mosaic-cell:nth-child(3) {
+  border: 2px solid #aeb1b5;
+  border-radius: 0 100% 0 100%;
+}
+
+.auth-mosaic-cell:nth-child(4) {
+  background: #e6bb62;
+  border-radius: 100% 0 100% 0;
+}
+
+.auth-mosaic-cell:nth-child(5) {
+  background: #376d5f;
+  border-radius: 0 100% 100% 0;
+}
+
+.auth-mosaic-cell:nth-child(6) {
+  background: #c8cee6;
+  border-radius: 0 0 100% 100%;
+}
+
+.auth-mosaic-cell:nth-child(7) {
+  background: #1d5d9f;
+  border-radius: 42% 0 0 42%;
+}
+
+.auth-mosaic-cell:nth-child(8) {
+  background: #d4e8e1;
+}
+
+.auth-mosaic-cell:nth-child(9) {
+  border: 2px solid #aeb1b5;
+  border-radius: 100% 0 0;
+}
+
+.auth-mosaic-cell:nth-child(10) {
+  background: #f8d39f;
+  border-radius: 0 0 0 100%;
+}
+
+.auth-mosaic-cell:nth-child(11) {
+  background: #ffdbad;
+  border-radius: 100% 0 0 100%;
+}
+
+.auth-mosaic-cell:nth-child(12) {
+  background: #c8cee6;
+  border-radius: 100% 100% 0 0;
+}
+
+.auth-mosaic-cell:nth-child(13) {
+  border: 2px solid #aeb1b5;
+  border-radius: 0 0 100% 0;
+}
+
+.auth-mosaic-cell:nth-child(14) {
+  background: #d4e8e1;
+  border-radius: 0 100% 0 100%;
+}
+
+.auth-mosaic-cell:nth-child(15) {
+  background: #1875aa;
+  border-radius: 100% 100% 0 0;
+}
+
+.auth-mosaic-cell:nth-child(16) {
+  border: 2px solid #aeb1b5;
+  border-radius: 100% 0 0 0;
+}
+
+.auth-mosaic-cell:nth-child(17) {
+  background: #b7c983;
+  border-radius: 0 100% 0 0;
+}
+
+.auth-mosaic-cell:nth-child(18) {
+  background: #ffdcaf;
+  border-radius: 0 0 100% 0;
+}
+
+.auth-mosaic-cell:nth-child(19) {
+  background: #c8cee6;
+  border-radius: 100% 0 0 100%;
+}
+
+.auth-mosaic-cell:nth-child(20) {
+  background: #d4e8e1;
+  border-radius: 100% 0 100% 0;
+}
+
+.auth-mosaic-cell:nth-child(21) {
+  background: #2b639a;
+  border-radius: 100% 100% 0 0;
+}
+
+.auth-mosaic-cell:nth-child(22) {
+  background: #d5e7df;
+  border-radius: 100% 0 100% 100%;
+}
+
+.auth-mosaic-cell:nth-child(23) {
+  background: #f9c56f;
+  border-radius: 0 100% 0 100%;
+}
+
+.auth-mosaic-cell:nth-child(24) {
+  border: 2px solid #aeb1b5;
+  border-radius: 100% 100% 0 0;
+}
+
+.auth-mosaic-cell:nth-child(25) {
+  background: #9cbdad;
+  border-radius: 0 100% 0 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

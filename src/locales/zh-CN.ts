@@ -13,20 +13,7 @@ export default {
     projectsPending: '项目功能即将接入',
   },
   auth: {
-    preview: {
-      eyebrow: '了解 FlowBoard',
-      title: '让计划，保持轻盈。',
-      badge: '产品预览',
-      today: '今天',
-      focusTitle: '把注意力留给重要的事',
-      items: {
-        first: '整理本周计划',
-        second: '推进一个项目',
-        third: '留一点时间给自己',
-      },
-      progressTitle: '稳稳向前',
-      progressDescription: '每天只需看清下一步。',
-    },
+    backHome: '返回首页',
     fields: {
       displayName: '你的称呼',
       email: '邮箱',
@@ -34,9 +21,9 @@ export default {
       passwordHint: '密码长度为 8 至 72 个字符。',
     },
     login: {
-      eyebrow: '欢迎回来',
-      title: '继续你的节奏',
-      description: '登录后，回到属于你的 FlowBoard 工作区。',
+      eyebrow: '登录 FlowBoard',
+      title: '欢迎回来',
+      description: '登录后，继续安排属于你的今天。',
       submit: '登录并进入工作区',
       noAccount: '还没有账号？',
       goRegister: '创建账号',
