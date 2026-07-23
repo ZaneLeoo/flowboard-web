@@ -83,7 +83,7 @@ function errorMessage(code: string) {
       </p>
       <AppTextField id="login-email" v-model="form.email" type="email" autocomplete="email" :label="t('auth.fields.email')" :error="fieldErrors.email" />
       <AppTextField id="login-password" v-model="form.password" type="password" autocomplete="current-password" :label="t('auth.fields.password')" :error="fieldErrors.password" />
-      <AppButton type="submit" variant="ink" :loading="isSubmitting" class="mt-1 w-full">
+      <AppButton type="submit" :loading="isSubmitting" class="mt-1 w-full">
         <Icon v-if="!isSubmitting" icon="solar:arrow-right-linear" class="size-4" aria-hidden="true" />
         {{ t('auth.login.submit') }}
       </AppButton>

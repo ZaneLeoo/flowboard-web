@@ -3,7 +3,7 @@ import { Icon } from '@iconify/vue'
 
 withDefaults(defineProps<{
   type?: 'button' | 'submit' | 'reset'
-  variant?: 'primary' | 'secondary' | 'ghost' | 'ink'
+  variant?: 'primary' | 'secondary' | 'ghost'
   loading?: boolean
   disabled?: boolean
 }>(), {
@@ -23,7 +23,6 @@ withDefaults(defineProps<{
       'bg-[var(--accent-primary)] text-white shadow-[0_10px_24px_rgba(36,99,235,0.24)] hover:bg-[var(--accent-primary-hover)]': variant === 'primary',
       'border border-[var(--border-subtle)] bg-[var(--surface-raised)] text-[var(--text-primary)] shadow-[var(--shadow-subtle)] hover:border-[var(--border-strong)] hover:bg-white': variant === 'secondary',
       'text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]': variant === 'ghost',
-      'bg-[var(--surface-ink)] text-white shadow-[0_10px_24px_rgba(23,25,31,0.16)] hover:bg-[#2a2d35]': variant === 'ink',
     }"
   >
     <Icon v-if="loading" icon="solar:refresh-circle-linear" class="size-4 animate-spin" aria-hidden="true" />
