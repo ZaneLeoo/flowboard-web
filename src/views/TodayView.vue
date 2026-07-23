@@ -1,22 +1,20 @@
 <script setup lang="ts">
-import { CalendarCheck, ChevronDown, Crosshair, Folder, GripVertical, Plus } from 'lucide-vue-next'
+import { ChevronDown, Crosshair, GripVertical, Plus } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
 import AppShell from '../components/layout/AppShell.vue'
-import ProgressRing from '../components/today/ProgressRing.vue'
-import ProjectEditorDialog from '../components/today/ProjectEditorDialog.vue'
 import TaskDetailPanel from '../components/today/TaskDetailPanel.vue'
 import TaskEditorDialog from '../components/today/TaskEditorDialog.vue'
 import TaskRow from '../components/today/TaskRow.vue'
 import ConfirmDialog from '../components/ui/ConfirmDialog.vue'
 import { Button } from '../components/ui/button'
-import { Card, CardContent } from '../components/ui/card'
+import { Card } from '../components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
-import type { ProjectColor, ProjectDraft, Task, TaskDraft, TodayBucket } from '../features/workspace/api'
+import type { Task, TaskDraft, TodayBucket } from '../features/workspace/api'
 import { useAuthStore } from '../stores/auth'
 import { useTodayStore } from '../stores/today'
 
@@ -28,21 +26,17 @@ const auth = useAuthStore()
 const today = useTodayStore()
 
 const isLoggingOut = ref(false)
-const selectedProjectId = ref<string | null>(null)
 const activeTab = ref<TabKey>('FOCUS')
 const taskDialogOpen = ref(false)
 const taskBucketMenuOpen = ref(false)
 const editingTask = ref<Task | null>(null)
 const defaultBucket = ref<TodayBucket>('FOCUS')
 const taskSubmitting = ref(false)
-const projectDialogOpen = ref(false)
-const projectSubmitting = ref(false)
 const taskToDelete = ref<Task | null>(null)
 
 const displayName = computed(() => auth.user?.displayName ?? '')
 const email = computed(() => auth.user?.email ?? '')
 const avatarInitial = computed(() => (displayName.value || '我').slice(0, 1).toUpperCase())
-const selectedProject = computed(() => today.projects.find(project => project.id === selectedProjectId.value) ?? null)
 const selectedTask = computed(() => today.selectedTask)
 
 const dateLabel = computed(() => new Intl.DateTimeFormat(locale.value, {
@@ -51,16 +45,11 @@ const dateLabel = computed(() => new Intl.DateTimeFormat(locale.value, {
   weekday: 'long',
 }).format(new Date(`${today.date}T12:00:00`)))
 
-function filterTasks(tasks: Task[]) {
-  if (!selectedProjectId.value) return tasks
-  return tasks.filter(task => task.projectId === selectedProjectId.value)
-}
-
 const tasksByTab = computed<Record<TabKey, Task[]>>(() => ({
-  FOCUS: filterTasks(today.data.focus),
-  PLAN: filterTasks(today.data.plan),
-  LATER: filterTasks(today.data.later),
-  DONE: filterTasks(today.data.done),
+  FOCUS: today.data.focus,
+  PLAN: today.data.plan,
+  LATER: today.data.later,
+  DONE: today.data.done,
 }))
 
 const tabs = computed<{ key: TabKey, label: string, count: number }[]>(() => [
@@ -72,13 +61,6 @@ const tabs = computed<{ key: TabKey, label: string, count: number }[]>(() => [
 
 const totalTasks = computed(() => today.data.focus.length + today.data.plan.length + today.data.later.length + today.data.done.length)
 const doneTasksCount = computed(() => today.data.done.length)
-const dailyPercent = computed(() => totalTasks.value ? (doneTasksCount.value / totalTasks.value) * 100 : 0)
-const momentumLabel = computed(() => {
-  if (dailyPercent.value >= 60) return '势头不错！'
-  if (dailyPercent.value > 0) return '稳步推进中'
-  return '从一件小事开始'
-})
-
 const emptyTextByTab: Record<TabKey, string> = {
   FOCUS: '还没有聚焦任务。把一件最重要的事放在这里。',
   PLAN: '今天暂时没有计划任务。',
@@ -91,14 +73,6 @@ const bucketOptions: { value: TodayBucket, label: string }[] = [
   { value: 'PLAN', label: '添加到计划' },
   { value: 'LATER', label: '添加到稍后' },
 ]
-
-const projectColorClass: Record<ProjectColor, string> = {
-  BLUE: 'bg-[#4e8ff5]',
-  VIOLET: 'bg-[#9a77ed]',
-  GREEN: 'bg-[#48a66b]',
-  AMBER: 'bg-[#e9a11d]',
-  ROSE: 'bg-[#df6e91]',
-}
 
 function readableError(error: unknown) {
   return error instanceof Error ? error.message : '操作未能完成，请稍后再试'
@@ -189,25 +163,6 @@ async function removeTask() {
   }
 }
 
-async function createProject(input: ProjectDraft) {
-  projectSubmitting.value = true
-  try {
-    await today.createProject(input)
-    projectDialogOpen.value = false
-    toast.success('项目已创建')
-  }
-  catch (error) {
-    toast.error(readableError(error))
-  }
-  finally {
-    projectSubmitting.value = false
-  }
-}
-
-function toggleProjectFilter(projectId: string) {
-  selectedProjectId.value = selectedProjectId.value === projectId ? null : projectId
-}
-
 async function logout() {
   if (isLoggingOut.value) return
   isLoggingOut.value = true
@@ -235,6 +190,10 @@ onMounted(() => today.load())
                 <ChevronDown class="size-5 text-[var(--text-tertiary)]" aria-hidden="true" />
               </h1>
               <p class="mt-1 text-sm text-[var(--text-tertiary)]">{{ dateLabel }}</p>
+              <p class="mt-2 text-sm text-[var(--text-secondary)]">
+                <template v-if="totalTasks">今日完成 {{ doneTasksCount }} / {{ totalTasks }} 项</template>
+                <template v-else>今天还没有安排任务</template>
+              </p>
             </div>
             <div class="flex items-center gap-2">
               <Button variant="outline" class="min-h-10" @click="activeTab = 'FOCUS'">
@@ -274,12 +233,6 @@ onMounted(() => today.load())
             <span>{{ today.error }}</span>
             <Button variant="ghost" size="sm" class="-my-1 h-auto min-h-0 px-0 font-semibold text-[var(--danger)] underline underline-offset-4 hover:bg-transparent" @click="today.load()">重试</Button>
           </div>
-
-          <p v-if="selectedProject" class="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent-primary)]">
-            <Folder class="size-3.5" aria-hidden="true" />
-            {{ selectedProject.name }}
-            <button type="button" class="text-[var(--accent-primary)]/70 transition-colors hover:text-[var(--accent-primary)]" aria-label="清除项目筛选" @click="selectedProjectId = null">×</button>
-          </p>
 
           <div v-if="today.isLoading" class="mt-8 grid gap-3" aria-label="正在加载今天的任务">
             <div v-for="index in 4" :key="index" class="h-12 animate-pulse rounded-xl bg-[#f4f4f5]" />
@@ -332,84 +285,6 @@ onMounted(() => today.load())
               </TabsContent>
             </Tabs>
 
-            <section class="mt-10">
-              <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-[var(--text-primary)]">项目</h2>
-                <div class="flex items-center gap-1">
-                  <button
-                    type="button"
-                    class="rounded-lg px-2 py-1 text-[13px] font-medium text-[var(--accent-primary)] transition-colors hover:bg-[var(--accent-soft)]"
-                    @click="selectedProjectId = null"
-                  >查看全部</button>
-                  <Button variant="ghost" size="icon-sm" aria-label="新建项目" @click="projectDialogOpen = true">
-                    <Plus class="size-4" aria-hidden="true" />
-                  </Button>
-                </div>
-              </div>
-              <div v-if="today.data.projects.length" class="mt-2 grid gap-0.5">
-                <button
-                  v-for="project in today.data.projects"
-                  :key="project.id"
-                  type="button"
-                  class="flex items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-[#fafafa]"
-                  :class="{ 'bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)]/55': selectedProjectId === project.id }"
-                  @click="toggleProjectFilter(project.id)"
-                >
-                  <span class="grid size-9 shrink-0 place-items-center rounded-lg" :class="projectColorClass[project.color]">
-                    <Folder class="size-4 text-white" aria-hidden="true" />
-                  </span>
-                  <span class="w-28 shrink-0 truncate text-sm font-medium text-[var(--text-primary)] sm:w-36">{{ project.name }}</span>
-                  <span class="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[#ececee]">
-                    <span class="block h-full rounded-full" :class="projectColorClass[project.color]" :style="{ width: `${project.completionRate}%` }" />
-                  </span>
-                  <span class="w-10 shrink-0 text-right text-xs font-semibold text-[var(--text-secondary)]">{{ project.completionRate }}%</span>
-                  <span class="hidden w-20 shrink-0 text-right text-xs text-[var(--text-tertiary)] sm:block">
-                    {{ project.totalCount ? `${project.incompleteCount} 项待办` : '暂无任务' }}
-                  </span>
-                </button>
-              </div>
-              <p v-else class="mt-2 rounded-xl bg-[#fafafa] px-4 py-5 text-sm text-[var(--text-secondary)]">
-                创建一个项目，把相关任务放到一起推进。
-              </p>
-            </section>
-
-            <section class="mt-10 grid gap-4 sm:grid-cols-2">
-              <Card class="gap-0 rounded-2xl border-[var(--border-subtle)] py-0 shadow-none">
-                <CardContent class="p-5">
-                  <h3 class="text-sm font-semibold text-[var(--text-primary)]">每日进度</h3>
-                  <div class="mt-4 flex items-center gap-5">
-                    <ProgressRing :percent="dailyPercent" :size="72" />
-                    <div class="min-w-0">
-                      <p class="text-sm font-semibold text-[var(--text-primary)]">{{ momentumLabel }}</p>
-                      <p class="mt-0.5 text-[13px] text-[var(--text-secondary)]">{{ totalTasks }} 项任务中已完成 {{ doneTasksCount }} 项</p>
-                      <button
-                        type="button"
-                        class="mt-1.5 text-[13px] font-semibold text-[var(--accent-primary)] transition-colors hover:opacity-75"
-                        @click="activeTab = 'DONE'"
-                      >查看进度</button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card class="gap-0 rounded-2xl border-[var(--border-subtle)] py-0 shadow-none">
-                <CardContent class="p-5">
-                  <h3 class="text-sm font-semibold text-[var(--text-primary)]">规划你的一天</h3>
-                  <div class="mt-4 flex items-center gap-4">
-                    <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-primary)]">
-                      <CalendarCheck class="size-5" aria-hidden="true" />
-                    </span>
-                    <div class="min-w-0">
-                      <p class="text-sm text-[var(--text-secondary)]">计划中有 {{ tasksByTab.PLAN.length }} 项任务</p>
-                      <button
-                        type="button"
-                        class="mt-1 text-[13px] font-semibold text-[var(--accent-primary)] transition-colors hover:opacity-75"
-                        @click="activeTab = 'PLAN'"
-                      >查看你的计划</button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </section>
           </template>
         </div>
       </main>
@@ -455,7 +330,6 @@ onMounted(() => today.load())
       @close="taskDialogOpen = false"
       @submit="saveTask"
     />
-    <ProjectEditorDialog :open="projectDialogOpen" :submitting="projectSubmitting" @close="projectDialogOpen = false" @submit="createProject" />
     <ConfirmDialog
       :open="Boolean(taskToDelete)"
       title="删除任务？"
