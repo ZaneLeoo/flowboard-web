@@ -1,108 +1,187 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { useI18n } from 'vue-i18n'
+import {
+  Calendar,
+  ChevronUp,
+  Folder,
+  Inbox,
+  LogOut,
+  NotebookPen,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings,
+  SquareCheckBig,
+  Star,
+  Sun,
+  Target,
+  TrendingUp,
+} from 'lucide-vue-next'
+import { ref } from 'vue'
+import { toast } from 'vue-sonner'
 
-import type { Project } from '../../features/workspace/api'
 import BrandLogo from '../ui/BrandLogo.vue'
-import { Button } from '../ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 
-withDefaults(defineProps<{
+defineProps<{
   displayName: string
   email: string
-  projects?: Project[]
-  selectedProjectId?: string | null
-}>(), {
-  projects: () => [],
-  selectedProjectId: null,
-})
+}>()
 
 defineEmits<{
   logout: []
-  createProject: []
-  selectProject: [projectId: string]
 }>()
 
-const { t } = useI18n()
+const isCollapsed = ref(false)
 
-function projectColorClass(color: Project['color']) {
-  return {
-    BLUE: 'bg-[#4e8ff5]',
-    VIOLET: 'bg-[#9a77ed]',
-    GREEN: 'bg-[#48a66b]',
-    AMBER: 'bg-[#e9a11d]',
-    ROSE: 'bg-[#df6e91]',
-  }[color]
+const navItemClass = 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[#f4f4f5] hover:text-[var(--text-primary)]'
+
+const mainNavItems = [
+  { label: '我的任务', icon: SquareCheckBig },
+  { label: '项目', icon: Folder },
+  { label: '日历', icon: Calendar },
+  { label: '笔记', icon: NotebookPen },
+  { label: '目标', icon: Target },
+  { label: '习惯', icon: TrendingUp },
+]
+
+const secondaryNavItems = [
+  { label: '收集箱', icon: Inbox, badge: 3 },
+  { label: '已加星', icon: Star, badge: 0 },
+]
+
+function comingSoon(label: string) {
+  toast(`「${label}」模块即将上线`)
 }
 </script>
 
 <template>
-  <div class="min-h-svh bg-[var(--surface-canvas)] p-3 sm:p-4">
-    <div class="mx-auto grid min-h-[calc(100svh-1.5rem)] max-w-[1600px] xl:grid-cols-[15.5rem_minmax(0,1fr)] xl:gap-4">
-      <aside class="hidden min-h-0 rounded-[1.75rem] border border-white/80 bg-[var(--surface-sidebar)] p-3 shadow-[var(--shadow-subtle)] xl:flex xl:flex-col">
-        <RouterLink to="/today" class="flex min-h-12 items-center rounded-xl px-2.5">
-          <BrandLogo />
-        </RouterLink>
-
-        <nav class="mt-8 grid gap-1" :aria-label="t('nav.label')">
-          <RouterLink to="/today" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-[var(--text-secondary)] transition-colors hover:bg-white hover:text-[var(--text-primary)]" active-class="!bg-white !text-[var(--accent-primary)] shadow-[var(--shadow-subtle)]">
-            <Icon icon="solar:calendar-date-linear" class="size-5" aria-hidden="true" />
-            {{ t('nav.today') }}
-          </RouterLink>
-        </nav>
-
-        <section class="mt-7">
-          <div class="flex items-center justify-between px-3">
-            <p class="text-[11px] font-semibold tracking-[0.1em] text-[var(--text-tertiary)]">{{ t('nav.projects') }}</p>
-            <Button variant="ghost" size="icon-sm" class="text-[var(--text-secondary)] hover:bg-white hover:text-[var(--accent-primary)]" aria-label="新建项目" @click="$emit('createProject')">
-              <Icon icon="solar:add-circle-linear" class="size-4" aria-hidden="true" />
-            </Button>
-          </div>
-          <div class="mt-2 grid gap-1">
-            <Button
-              v-for="project in projects"
-              :key="project.id"
-              variant="ghost"
-              class="flex min-h-10 w-full items-center justify-start gap-2.5 rounded-xl px-3 text-left text-sm font-medium text-[var(--text-secondary)] hover:bg-white hover:text-[var(--text-primary)]"
-              :class="{ 'bg-white text-[var(--text-primary)] shadow-[var(--shadow-subtle)]': selectedProjectId === project.id }"
-              @click="$emit('selectProject', project.id)"
-            >
-              <span class="size-2 shrink-0 rounded-full" :class="projectColorClass(project.color)" />
-              <span class="truncate">{{ project.name }}</span>
-            </Button>
-            <p v-if="!projects.length" class="px-3 py-2 text-xs leading-5 text-[var(--text-tertiary)]">创建一个项目，开始整理你的节奏。</p>
-          </div>
-        </section>
-
-        <div class="mt-auto border-t border-[var(--border-subtle)] pt-3">
-          <div class="rounded-2xl bg-white/75 p-3">
-            <div class="flex min-w-0 items-center gap-3">
-              <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-sm font-bold text-[var(--accent-primary)]">
-                {{ displayName.slice(0, 1).toUpperCase() }}
-              </span>
-              <div class="min-w-0">
-                <p class="truncate text-sm font-semibold text-[var(--text-primary)]">{{ displayName }}</p>
-                <p class="truncate text-xs text-[var(--text-tertiary)]">{{ email }}</p>
-              </div>
-            </div>
-            <Button variant="ghost" class="mt-3 w-full text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]" @click="$emit('logout')">
-              <Icon icon="solar:logout-2-linear" class="size-4" aria-hidden="true" />
-              {{ t('auth.logout') }}
-            </Button>
-          </div>
-        </div>
-      </aside>
-
-      <div class="min-w-0">
-        <header class="mb-4 flex min-h-14 items-center justify-between rounded-2xl border border-white/80 bg-[var(--surface-raised)] px-4 shadow-[var(--shadow-subtle)] xl:hidden">
-          <RouterLink to="/today" class="flex items-center">
+  <div class="flex h-svh overflow-hidden bg-white">
+    <aside
+      class="hidden shrink-0 flex-col border-r border-[var(--border-subtle)] bg-white transition-[width] duration-200 lg:flex"
+      :class="isCollapsed ? 'w-[4.25rem]' : 'w-60'"
+    >
+      <div class="flex h-14 shrink-0 items-center" :class="isCollapsed ? 'justify-center px-2' : 'gap-2 px-4'">
+        <template v-if="!isCollapsed">
+          <RouterLink to="/today" class="flex min-w-0 items-center" aria-label="FlowBoard 首页">
             <BrandLogo size="sm" />
           </RouterLink>
-          <Button variant="ghost" size="icon" :aria-label="t('auth.logout')" @click="$emit('logout')">
-            <Icon icon="solar:logout-2-linear" class="size-5" aria-hidden="true" />
-          </Button>
-        </header>
-        <slot />
+          <button
+            type="button"
+            class="ml-auto grid size-7 shrink-0 place-items-center rounded-lg text-[var(--text-tertiary)] transition-colors hover:bg-[#f4f4f5] hover:text-[var(--text-primary)]"
+            aria-label="折叠侧边栏"
+            @click="isCollapsed = true"
+          >
+            <PanelLeftClose class="size-4" aria-hidden="true" />
+          </button>
+        </template>
+        <button
+          v-else
+          type="button"
+          class="grid size-8 place-items-center rounded-lg text-[var(--text-tertiary)] transition-colors hover:bg-[#f4f4f5] hover:text-[var(--text-primary)]"
+          aria-label="展开侧边栏"
+          @click="isCollapsed = false"
+        >
+          <PanelLeftOpen class="size-4" aria-hidden="true" />
+        </button>
       </div>
+
+      <nav class="mt-2 grid gap-0.5 px-3" :class="isCollapsed && 'px-2'" aria-label="主导航">
+        <RouterLink
+          to="/today"
+          :class="[navItemClass, isCollapsed && 'justify-center px-0']"
+          active-class="bg-[#f4f4f5] font-semibold !text-[var(--accent-primary)]"
+        >
+          <Sun class="size-[18px] shrink-0" aria-hidden="true" />
+          <span v-if="!isCollapsed" class="truncate">今天</span>
+        </RouterLink>
+        <button
+          v-for="item in mainNavItems"
+          :key="item.label"
+          type="button"
+          :class="[navItemClass, isCollapsed && 'justify-center px-0']"
+          @click="comingSoon(item.label)"
+        >
+          <component :is="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
+          <span v-if="!isCollapsed" class="truncate">{{ item.label }}</span>
+        </button>
+      </nav>
+
+      <div class="mx-3 my-3 border-t border-[var(--border-subtle)]" />
+
+      <nav class="grid gap-0.5 px-3" :class="isCollapsed && 'px-2'" aria-label="辅助导航">
+        <button
+          v-for="item in secondaryNavItems"
+          :key="item.label"
+          type="button"
+          :class="[navItemClass, isCollapsed && 'justify-center px-0']"
+          @click="comingSoon(item.label)"
+        >
+          <component :is="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
+          <span v-if="!isCollapsed" class="truncate">{{ item.label }}</span>
+          <span
+            v-if="item.badge && !isCollapsed"
+            class="ml-auto rounded-md bg-[#ececee] px-1.5 py-0.5 text-xs font-semibold text-[var(--text-secondary)]"
+          >{{ item.badge }}</span>
+        </button>
+      </nav>
+
+      <div class="mt-auto px-3 pb-3" :class="isCollapsed && 'px-2'">
+        <Popover>
+          <PopoverTrigger as-child>
+            <button
+              type="button"
+              class="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-[#f4f4f5]"
+              :class="isCollapsed && 'justify-center px-0'"
+            >
+              <span class="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-xs font-bold text-[var(--accent-primary)]">
+                {{ (displayName || '我').slice(0, 1).toUpperCase() }}
+              </span>
+              <span v-if="!isCollapsed" class="min-w-0 flex-1 truncate text-sm font-medium text-[var(--text-primary)]">{{ displayName }}</span>
+              <ChevronUp v-if="!isCollapsed" class="size-4 shrink-0 text-[var(--text-tertiary)]" aria-hidden="true" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            side="top"
+            :side-offset="8"
+            align="start"
+            class="w-56 rounded-xl border-[var(--border-subtle)] bg-white p-1.5 shadow-[var(--shadow-panel)]"
+          >
+            <p class="truncate px-2.5 py-2 text-xs text-[var(--text-tertiary)]">{{ email }}</p>
+            <button
+              type="button"
+              class="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
+              @click="$emit('logout')"
+            >
+              <LogOut class="size-4" aria-hidden="true" />
+              退出登录
+            </button>
+          </PopoverContent>
+        </Popover>
+        <button
+          type="button"
+          :class="[navItemClass, 'mt-1 w-full', isCollapsed && 'justify-center px-0']"
+          @click="comingSoon('设置')"
+        >
+          <Settings class="size-[18px] shrink-0" aria-hidden="true" />
+          <span v-if="!isCollapsed">设置</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+      <header class="flex h-14 shrink-0 items-center justify-between border-b border-[var(--border-subtle)] px-4 lg:hidden">
+        <RouterLink to="/today" class="flex items-center" aria-label="FlowBoard 首页">
+          <BrandLogo size="sm" />
+        </RouterLink>
+        <button
+          type="button"
+          class="grid size-9 place-items-center rounded-full bg-[var(--accent-soft)] text-sm font-bold text-[var(--accent-primary)]"
+          aria-label="退出登录"
+          @click="$emit('logout')"
+        >
+          {{ (displayName || '我').slice(0, 1).toUpperCase() }}
+        </button>
+      </header>
+      <slot />
     </div>
   </div>
 </template>

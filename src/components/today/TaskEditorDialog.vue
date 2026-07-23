@@ -10,13 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import type { Project, Task, TaskDraft, TaskPriority, TaskStatus, TodayBucket } from '@/features/workspace/api'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   open: boolean
   projects: Project[]
   task?: Task | null
   defaultDate: string
+  defaultBucket?: TodayBucket
   submitting?: boolean
-}>()
+}>(), {
+  task: null,
+  defaultBucket: 'FOCUS',
+  submitting: false,
+})
 
 const emit = defineEmits<{
   close: []
@@ -52,10 +57,10 @@ function reset() {
   form.priority = task?.priority ?? 'NONE'
   form.dueDate = task?.dueDate ?? ''
   form.placeToday = task ? task.todayDate === props.defaultDate : true
-  form.todayBucket = task?.todayBucket ?? 'FOCUS'
+  form.todayBucket = task?.todayBucket ?? props.defaultBucket
 }
 
-watch(() => [props.open, props.task, props.defaultDate], reset, { immediate: true })
+watch(() => [props.open, props.task, props.defaultDate, props.defaultBucket], reset, { immediate: true })
 
 function submit() {
   if (!form.title.trim()) return
