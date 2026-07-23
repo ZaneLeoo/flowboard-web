@@ -19,6 +19,7 @@ import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 
 import { Checkbox } from '@/components/ui/checkbox'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -75,17 +76,6 @@ const projectDotClass = computed(() => ({
   ROSE: 'bg-[#df6e91]',
 })[props.task.projectColor ?? 'BLUE'])
 
-const dueDateLabel = computed(() => {
-  if (!props.task.dueDate) return null
-  return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
-    .format(new Date(`${props.task.dueDate}T12:00:00`))
-})
-
-function setDueDate(value: string) {
-  emit('update', { dueDate: value || null })
-  dueDatePopoverOpen.value = false
-}
-
 // 以下为后端暂未支持的本地交互状态（星标、标签、清单、评论）
 const starred = ref(false)
 const tags = ref<string[]>([])
@@ -97,7 +87,6 @@ const subtaskDraft = ref('')
 const comments = ref<{ id: number, text: string }[]>([])
 const commentDraft = ref('')
 const moreMenuOpen = ref(false)
-const dueDatePopoverOpen = ref(false)
 
 const checklistDone = computed(() => checklist.value.filter(item => item.done).length)
 
@@ -275,32 +264,12 @@ const valueButtonClass = 'flex min-h-8 w-full items-center rounded-lg px-2 text-
         <div class="grid grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-2 py-0.5">
           <dt :class="rowLabelClass"><Calendar class="size-4" aria-hidden="true" />截止日期</dt>
           <dd>
-            <Popover v-model:open="dueDatePopoverOpen">
-              <PopoverTrigger as-child>
-                <button type="button" :class="valueButtonClass">
-                  <span :class="dueDateLabel ? '' : 'text-[var(--text-tertiary)]'">{{ dueDateLabel ?? '设置日期' }}</span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                :side-offset="6"
-                class="w-64 rounded-xl border-[var(--border-subtle)] bg-white p-3 shadow-[var(--shadow-panel)]"
-              >
-                <Input
-                  type="date"
-                  :model-value="task.dueDate ?? ''"
-                  aria-label="选择截止日期"
-                  @update:model-value="value => setDueDate(String(value ?? ''))"
-                />
-                <Button
-                  v-if="task.dueDate"
-                  variant="ghost"
-                  size="sm"
-                  class="mt-2 h-auto px-0 text-xs font-medium text-[var(--text-tertiary)] hover:bg-transparent hover:text-[var(--danger)]"
-                  @click="setDueDate('')"
-                >清除日期</Button>
-              </PopoverContent>
-            </Popover>
+            <DatePicker
+              :model-value="task.dueDate"
+              clearable
+              :class="valueButtonClass"
+              @update:model-value="value => emit('update', { dueDate: value || null })"
+            />
           </dd>
         </div>
 

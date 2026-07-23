@@ -4,6 +4,7 @@ import { computed, reactive, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -130,7 +131,7 @@ function submit() {
           </div>
           <div class="grid gap-2">
             <Label for="task-due-date">截止日期</Label>
-            <Input id="task-due-date" v-model="form.dueDate" type="date" />
+            <DatePicker id="task-due-date" v-model="form.dueDate" clearable />
           </div>
         </div>
 
