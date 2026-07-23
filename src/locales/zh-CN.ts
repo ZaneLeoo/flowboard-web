@@ -13,7 +13,6 @@ export default {
     projectsPending: '项目功能即将接入',
   },
   auth: {
-    backHome: '返回首页',
     fields: {
       displayName: '你的称呼',
       email: '邮箱',
@@ -21,7 +20,6 @@ export default {
       passwordHint: '密码长度为 8 至 72 个字符。',
     },
     login: {
-      eyebrow: '登录 FlowBoard',
       title: '欢迎回来',
       description: '登录后，继续安排属于你的今天。',
       submit: '登录并进入工作区',
@@ -29,9 +27,7 @@ export default {
       goRegister: '创建账号',
     },
     register: {
-      eyebrow: '开始使用',
-      title: '建立你的工作区',
-      description: '只需一点信息，FlowBoard 会为你准备好个人工作区。',
+      title: '创建账号',
       submit: '创建账号并继续',
       hasAccount: '已经有账号？',
       goLogin: '返回登录',

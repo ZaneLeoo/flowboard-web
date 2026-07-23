@@ -29,21 +29,8 @@ defineProps<{
         <p class="relative z-10 max-w-[19rem] text-sm leading-6 text-[var(--text-secondary)]">{{ t('app.tagline') }}</p>
       </aside>
 
-      <section class="flex min-h-[38rem] flex-col px-7 py-8 sm:px-12 sm:py-11 lg:min-h-0 lg:px-14">
-        <div class="flex items-center justify-between">
-          <RouterLink to="/" class="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
-            <Icon icon="solar:arrow-left-linear" class="size-4" aria-hidden="true" />
-            {{ t('auth.backHome') }}
-          </RouterLink>
-          <RouterLink to="/" class="flex items-center gap-2 text-base font-semibold tracking-[-0.04em] text-[var(--text-primary)] lg:hidden">
-            <span class="grid size-8 place-items-center rounded-lg bg-[var(--surface-ink)] text-white">
-              <Icon icon="solar:command-linear" class="size-4" aria-hidden="true" />
-            </span>
-            {{ t('app.name') }}
-          </RouterLink>
-        </div>
-
-        <div class="my-auto w-full max-w-[25rem] py-12 lg:mx-auto">
+      <section class="flex min-h-[38rem] items-center px-7 py-8 sm:px-12 sm:py-11 lg:min-h-0 lg:px-14">
+        <div class="mx-auto w-full max-w-[25rem] py-12">
           <slot />
 
           <p class="mt-9 text-sm leading-6 text-[var(--text-tertiary)]">

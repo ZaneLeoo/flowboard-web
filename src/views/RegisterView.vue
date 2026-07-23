@@ -68,12 +68,10 @@ function errorMessage(code: string) {
 <template>
   <AuthFrame mode="register">
     <div>
-      <p class="mb-3 text-sm font-semibold text-[var(--accent-primary)]">{{ t('auth.register.eyebrow') }}</p>
       <h2 class="text-3xl font-semibold leading-[1.08] tracking-[-0.05em] text-[var(--text-primary)]">{{ t('auth.register.title') }}</h2>
-      <p class="mt-3 text-[15px] leading-6 text-[var(--text-secondary)]">{{ t('auth.register.description') }}</p>
     </div>
 
-    <form class="mt-8 grid gap-5" @submit.prevent="submit">
+    <form class="mt-7 grid gap-5" @submit.prevent="submit">
       <p v-if="formError" class="rounded-xl border border-[var(--danger)] bg-[var(--danger-soft)] px-3.5 py-3 text-sm leading-5 text-[var(--danger)]" role="alert">
         {{ formError }}
       </p>

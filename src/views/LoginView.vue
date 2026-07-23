@@ -73,7 +73,6 @@ function errorMessage(code: string) {
 <template>
   <AuthFrame mode="login">
     <div>
-      <p class="mb-3 text-sm font-semibold text-[var(--accent-primary)]">{{ t('auth.login.eyebrow') }}</p>
       <h2 class="text-3xl font-semibold leading-[1.08] tracking-[-0.05em] text-[var(--text-primary)]">{{ t('auth.login.title') }}</h2>
       <p class="mt-3 text-[15px] leading-6 text-[var(--text-secondary)]">{{ t('auth.login.description') }}</p>
     </div>
