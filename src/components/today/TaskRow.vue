@@ -70,12 +70,13 @@ const dueDateLabel = computed(() => {
       </div>
     </div>
 
-    <span class="hidden min-w-0 max-w-36 items-center justify-end gap-1.5 truncate text-xs text-[var(--text-tertiary)] sm:inline-flex">
-      <span v-if="task.projectName" class="size-1.5 shrink-0 rounded-full" :class="projectDotClass" />
-      <Inbox v-else class="size-3.5 shrink-0" aria-hidden="true" />
-      <span class="truncate">{{ task.projectName ?? '收集箱' }}</span>
-    </span>
-
-    <GripVertical class="size-4 shrink-0 text-[#d4d4d8]" aria-hidden="true" />
+    <div class="flex min-w-0 items-center justify-end gap-2">
+      <span class="hidden min-w-0 max-w-36 items-center gap-1.5 truncate text-xs text-[var(--text-tertiary)] sm:inline-flex">
+        <span v-if="task.projectName" class="size-1.5 shrink-0 rounded-full" :class="projectDotClass" />
+        <Inbox v-else class="size-3.5 shrink-0" aria-hidden="true" />
+        <span class="truncate">{{ task.projectName ?? '收集箱' }}</span>
+      </span>
+      <GripVertical class="size-4 shrink-0 text-[#d4d4d8]" aria-hidden="true" />
+    </div>
   </article>
 </template>

@@ -75,7 +75,7 @@ function submit() {
 <template>
   <form
     v-if="open"
-    class="mt-7 overflow-hidden rounded-2xl border border-[var(--border-default)] bg-white shadow-[var(--shadow-panel)]"
+    class="mt-7 overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-white shadow-[var(--shadow-panel)]"
     @submit.prevent="submit"
     @keydown.esc.prevent="$emit('close')"
   >
@@ -86,7 +86,7 @@ function submit() {
         maxlength="160"
         placeholder="任务名称"
         aria-label="任务名称"
-        class="h-10 border-0 px-0 text-lg font-semibold tracking-[-0.02em] shadow-none focus-visible:ring-0"
+        class="h-10 rounded-none border-x-0 border-t-0 border-b border-[var(--border-strong)] bg-transparent px-0 text-lg font-semibold tracking-[-0.02em] shadow-none focus:border-[var(--accent-primary)] focus-visible:border-[var(--accent-primary)] focus-visible:ring-0"
       />
       <Textarea
         v-model="form.description"
@@ -94,7 +94,7 @@ function submit() {
         rows="2"
         placeholder="描述"
         aria-label="任务描述"
-        class="mt-1 min-h-12 resize-none border-0 px-0 py-1 text-sm text-[var(--text-secondary)] shadow-none focus-visible:ring-0"
+        class="mt-1 min-h-12 resize-none rounded-none border-0 bg-transparent px-0 py-1 text-sm text-[var(--text-secondary)] shadow-none focus:border-transparent focus-visible:ring-0"
       />
 
       <div class="flex flex-wrap items-center gap-2 pt-3">
