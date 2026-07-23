@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Flag, GripVertical } from 'lucide-vue-next'
+import { CalendarDays, Flag, GripVertical, Inbox } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import { Checkbox } from '@/components/ui/checkbox'
@@ -9,6 +9,8 @@ const props = defineProps<{
   task: Task
   selected?: boolean
   busy?: boolean
+  overdue?: boolean
+  showDueDate?: boolean
 }>()
 
 defineEmits<{
@@ -23,11 +25,18 @@ const projectDotClass = computed(() => ({
   AMBER: 'bg-[#e9a11d]',
   ROSE: 'bg-[#df6e91]',
 })[props.task.projectColor ?? 'BLUE'])
+
+const dueDateLabel = computed(() => {
+  if (!props.task.dueDate) return ''
+  const date = new Date(`${props.task.dueDate}T12:00:00`)
+  if (Number.isNaN(date.getTime())) return props.task.dueDate
+  return `${date.getMonth() + 1}月${date.getDate()}日`
+})
 </script>
 
 <template>
   <article
-    class="group flex cursor-pointer items-center gap-3 border-t border-[var(--border-subtle)] px-4 py-3 transition-colors first:border-t-0 hover:bg-[#fafafa]"
+    class="group grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 border-b border-[var(--border-subtle)] px-0 py-4 transition-colors last:border-b-0 hover:bg-[#fafafa] sm:gap-x-4"
     :class="{ 'bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)]/55': selected }"
     role="button"
     tabindex="0"
@@ -44,27 +53,27 @@ const projectDotClass = computed(() => ({
       @update:model-value="$emit('toggle')"
     />
 
-    <p
-      class="min-w-0 flex-1 truncate text-sm text-[var(--text-primary)]"
-      :class="{ 'text-[var(--text-tertiary)] line-through': task.status === 'DONE' }"
-    >
-      {{ task.title }}
-    </p>
+    <div class="min-w-0">
+      <p
+        class="truncate text-[15px] leading-6 text-[var(--text-primary)]"
+        :class="{ 'text-[var(--text-tertiary)] line-through': task.status === 'DONE' }"
+      >
+        {{ task.title }}
+      </p>
+      <div v-if="showDueDate !== false && dueDateLabel" class="mt-0.5 flex items-center gap-1.5 text-xs" :class="overdue ? 'text-[var(--danger)]' : 'text-[var(--text-tertiary)]'">
+        <CalendarDays class="size-3.5" aria-hidden="true" />
+        {{ dueDateLabel }}
+        <span v-if="task.priority === 'HIGH'" class="inline-flex items-center gap-1 font-medium text-[#df6d5a]">
+          <Flag class="size-3" aria-hidden="true" />
+          高优先级
+        </span>
+      </div>
+    </div>
 
-    <span
-      v-if="task.priority === 'HIGH'"
-      class="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-[#df6d5a]"
-    >
-      <Flag class="size-3.5" aria-hidden="true" />
-      高
-    </span>
-
-    <span
-      v-if="task.projectName"
-      class="hidden shrink-0 items-center gap-1.5 text-xs text-[var(--text-tertiary)] sm:inline-flex"
-    >
-      <span class="size-1.5 rounded-full" :class="projectDotClass" />
-      {{ task.projectName }}
+    <span class="hidden min-w-0 max-w-36 items-center justify-end gap-1.5 truncate text-xs text-[var(--text-tertiary)] sm:inline-flex">
+      <span v-if="task.projectName" class="size-1.5 shrink-0 rounded-full" :class="projectDotClass" />
+      <Inbox v-else class="size-3.5 shrink-0" aria-hidden="true" />
+      <span class="truncate">{{ task.projectName ?? '收集箱' }}</span>
     </span>
 
     <GripVertical class="size-4 shrink-0 text-[#d4d4d8]" aria-hidden="true" />

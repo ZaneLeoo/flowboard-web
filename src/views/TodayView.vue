@@ -1,24 +1,21 @@
 <script setup lang="ts">
-import { ChevronDown, Crosshair, GripVertical, Plus } from 'lucide-vue-next'
+import { ChevronDown, GripVertical, Plus } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
 import AppShell from '../components/layout/AppShell.vue'
+import InlineTaskComposer from '../components/today/InlineTaskComposer.vue'
 import TaskDetailPanel from '../components/today/TaskDetailPanel.vue'
 import TaskEditorDialog from '../components/today/TaskEditorDialog.vue'
 import TaskRow from '../components/today/TaskRow.vue'
 import ConfirmDialog from '../components/ui/ConfirmDialog.vue'
 import { Button } from '../components/ui/button'
-import { Card } from '../components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import type { Task, TaskDraft, TodayBucket } from '../features/workspace/api'
 import { useAuthStore } from '../stores/auth'
 import { useTodayStore } from '../stores/today'
-
-type TabKey = TodayBucket | 'DONE'
 
 const { locale } = useI18n()
 const router = useRouter()
@@ -26,13 +23,16 @@ const auth = useAuthStore()
 const today = useTodayStore()
 
 const isLoggingOut = ref(false)
-const activeTab = ref<TabKey>('FOCUS')
+const composerOpen = ref(false)
+const composerBucket = ref<TodayBucket>('FOCUS')
+const composerSubmitting = ref(false)
 const taskDialogOpen = ref(false)
 const taskBucketMenuOpen = ref(false)
 const editingTask = ref<Task | null>(null)
 const defaultBucket = ref<TodayBucket>('FOCUS')
 const taskSubmitting = ref(false)
 const taskToDelete = ref<Task | null>(null)
+const showCompleted = ref(false)
 
 const displayName = computed(() => auth.user?.displayName ?? '')
 const email = computed(() => auth.user?.email ?? '')
@@ -45,28 +45,22 @@ const dateLabel = computed(() => new Intl.DateTimeFormat(locale.value, {
   weekday: 'long',
 }).format(new Date(`${today.date}T12:00:00`)))
 
-const tasksByTab = computed<Record<TabKey, Task[]>>(() => ({
-  FOCUS: today.data.focus,
-  PLAN: today.data.plan,
-  LATER: today.data.later,
-  DONE: today.data.done,
-}))
+const activeTasks = computed(() => {
+  const bucketOrder: Record<TodayBucket, number> = { FOCUS: 0, PLAN: 1, LATER: 2 }
+  return [...today.data.focus, ...today.data.plan, ...today.data.later]
+    .sort((a, b) => (bucketOrder[a.todayBucket ?? 'LATER'] - bucketOrder[b.todayBucket ?? 'LATER']) || (a.sortOrder - b.sortOrder))
+})
 
-const tabs = computed<{ key: TabKey, label: string, count: number }[]>(() => [
-  { key: 'FOCUS', label: '聚焦', count: tasksByTab.value.FOCUS.length },
-  { key: 'PLAN', label: '计划', count: tasksByTab.value.PLAN.length },
-  { key: 'LATER', label: '稍后', count: tasksByTab.value.LATER.length },
-  { key: 'DONE', label: '已完成', count: tasksByTab.value.DONE.length },
-])
-
-const totalTasks = computed(() => today.data.focus.length + today.data.plan.length + today.data.later.length + today.data.done.length)
+const overdueTasks = computed(() => activeTasks.value.filter(task => Boolean(task.dueDate && task.dueDate < today.date)))
+const todayTasks = computed(() => activeTasks.value.filter(task => !task.dueDate || task.dueDate >= today.date))
+const completedTasks = computed(() => today.data.done)
+const totalTasks = computed(() => activeTasks.value.length + completedTasks.value.length)
 const doneTasksCount = computed(() => today.data.done.length)
-const emptyTextByTab: Record<TabKey, string> = {
-  FOCUS: '还没有聚焦任务。把一件最重要的事放在这里。',
-  PLAN: '今天暂时没有计划任务。',
-  LATER: '暂时没有稍后事项。',
-  DONE: '完成的任务会安静地留在这里。',
-}
+const dateSectionLabel = computed(() => {
+  const value = new Date(`${today.date}T12:00:00`)
+  const weekday = new Intl.DateTimeFormat(locale.value, { weekday: 'short' }).format(value).replace('星期', '周')
+  return `${value.getMonth() + 1}月${value.getDate()}日 · 今天 · ${weekday}`
+})
 
 const bucketOptions: { value: TodayBucket, label: string }[] = [
   { value: 'FOCUS', label: '添加到聚焦' },
@@ -82,10 +76,10 @@ function selectTask(task: Task) {
   today.selectedTaskId = task.id
 }
 
-function openCreateTask(bucket?: TodayBucket) {
-  editingTask.value = null
-  defaultBucket.value = bucket ?? (activeTab.value === 'DONE' ? 'FOCUS' : activeTab.value)
-  taskDialogOpen.value = true
+function openQuickCreate(bucket?: TodayBucket) {
+  composerBucket.value = bucket ?? 'FOCUS'
+  composerOpen.value = true
+  taskBucketMenuOpen.value = false
 }
 
 function openEditTask(task: Task) {
@@ -111,6 +105,21 @@ async function saveTask(input: TaskDraft) {
   }
   finally {
     taskSubmitting.value = false
+  }
+}
+
+async function saveQuickTask(input: TaskDraft) {
+  composerSubmitting.value = true
+  try {
+    await today.createTask(input)
+    composerOpen.value = false
+    toast.success('任务已创建')
+  }
+  catch (error) {
+    toast.error(readableError(error))
+  }
+  finally {
+    composerSubmitting.value = false
   }
 }
 
@@ -196,12 +205,8 @@ onMounted(() => today.load())
               </p>
             </div>
             <div class="flex items-center gap-2">
-              <Button variant="outline" class="min-h-10" @click="activeTab = 'FOCUS'">
-                <Crosshair class="size-4 text-[var(--text-secondary)]" aria-hidden="true" />
-                专注
-              </Button>
               <div class="flex">
-                <Button class="min-h-10 rounded-r-none" @click="openCreateTask()">
+                <Button class="min-h-10 rounded-r-none" @click="openQuickCreate()">
                   <Plus class="size-4" aria-hidden="true" />
                   添加任务
                 </Button>
@@ -221,7 +226,7 @@ onMounted(() => today.load())
                       :key="option.value"
                       variant="ghost"
                       class="h-auto w-full justify-start rounded-lg px-2.5 py-2 text-sm font-medium text-[var(--text-secondary)] hover:bg-[#f4f4f5] hover:text-[var(--text-primary)]"
-                      @click="openCreateTask(option.value); taskBucketMenuOpen = false"
+                      @click="openQuickCreate(option.value)"
                     >{{ option.label }}</Button>
                   </PopoverContent>
                 </Popover>
@@ -239,52 +244,93 @@ onMounted(() => today.load())
           </div>
 
           <template v-else>
-            <Tabs v-model="activeTab" class="mt-7 gap-0">
-              <div class="flex items-end border-b border-[var(--border-subtle)]">
-                <TabsList class="h-auto w-auto gap-1 rounded-none bg-transparent p-0">
-                  <TabsTrigger
-                    v-for="tab in tabs"
-                    :key="tab.key"
-                    :value="tab.key"
-                    class="relative -mb-px h-auto flex-none rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-medium text-[var(--text-secondary)] shadow-none hover:text-[var(--text-primary)] data-[state=active]:border-[var(--accent-primary)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--accent-primary)] data-[state=active]:shadow-none"
-                  >
-                    {{ tab.label }}
-                    <span class="text-xs text-[var(--text-tertiary)] data-[state=active]:text-[var(--accent-primary)]/70">· {{ tab.count }}</span>
-                  </TabsTrigger>
-                </TabsList>
-                <div class="ml-auto pb-1.5">
-                  <Button variant="ghost" size="sm" class="gap-1.5 text-[var(--text-secondary)]" @click="toast('拖拽排序即将支持')">
-                    <GripVertical class="size-4" aria-hidden="true" />
-                    重新排序
-                  </Button>
+            <InlineTaskComposer
+              :open="composerOpen"
+              :projects="today.projects"
+              :default-date="today.date"
+              :default-bucket="composerBucket"
+              :submitting="composerSubmitting"
+              @close="composerOpen = false"
+              @submit="saveQuickTask"
+            />
+
+            <section v-if="overdueTasks.length" class="mt-8">
+              <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+                <div class="flex items-center gap-2.5">
+                  <ChevronDown class="size-4 text-[var(--text-secondary)]" aria-hidden="true" />
+                  <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">逾期</h2>
+                  <span class="text-sm text-[var(--text-tertiary)]">· {{ overdueTasks.length }}</span>
                 </div>
+                <Button variant="ghost" size="sm" class="font-semibold text-[var(--danger)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]" @click="toast('重新安排功能即将支持')">重新安排</Button>
               </div>
+              <div>
+                <TaskRow
+                  v-for="task in overdueTasks"
+                  :key="task.id"
+                  :task="task"
+                  overdue
+                  :selected="today.selectedTaskId === task.id"
+                  :busy="today.busyTaskId === task.id"
+                  @select="selectTask(task)"
+                  @toggle="toggleTask(task)"
+                />
+              </div>
+            </section>
 
-              <TabsContent v-for="tab in tabs" :key="tab.key" :value="tab.key" class="mt-4">
-                <Card class="gap-0 overflow-hidden rounded-2xl border-[var(--border-subtle)] py-0 shadow-none">
-                  <TaskRow
-                    v-for="task in tasksByTab[tab.key]"
-                    :key="task.id"
-                    :task="task"
-                    :selected="today.selectedTaskId === task.id"
-                    :busy="today.busyTaskId === task.id"
-                    @select="selectTask(task)"
-                    @toggle="toggleTask(task)"
-                  />
-                  <p v-if="!tasksByTab[tab.key].length" class="px-5 py-6 text-sm text-[var(--text-tertiary)]">{{ emptyTextByTab[tab.key] }}</p>
-                  <Button
-                    v-if="tab.key !== 'DONE'"
-                    variant="ghost"
-                    class="h-auto w-full justify-start rounded-none border-t border-[var(--border-subtle)] px-4 py-3 text-sm font-medium text-[var(--text-tertiary)] hover:bg-[#fafafa] hover:text-[var(--accent-primary)]"
-                    @click="openCreateTask(tab.key)"
-                  >
-                    <Plus class="size-4" aria-hidden="true" />
-                    添加任务
-                  </Button>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            <section class="mt-8">
+              <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+                <div class="flex items-center gap-2.5">
+                  <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">{{ dateSectionLabel }}</h2>
+                  <span class="text-sm text-[var(--text-tertiary)]">· {{ todayTasks.length }}</span>
+                </div>
+                <Button variant="ghost" size="sm" class="gap-1.5 text-[var(--text-secondary)]" @click="toast('拖拽排序即将支持')">
+                  <GripVertical class="size-4" aria-hidden="true" />
+                  重新排序
+                </Button>
+              </div>
+              <div v-if="todayTasks.length">
+                <TaskRow
+                  v-for="task in todayTasks"
+                  :key="task.id"
+                  :task="task"
+                  :selected="today.selectedTaskId === task.id"
+                  :busy="today.busyTaskId === task.id"
+                  @select="selectTask(task)"
+                  @toggle="toggleTask(task)"
+                />
+              </div>
+              <div v-else class="border-b border-[var(--border-subtle)] py-8 text-center">
+                <p class="text-sm text-[var(--text-tertiary)]">今天还没有安排任务</p>
+                <Button variant="ghost" class="mt-2 text-[var(--accent-primary)]" @click="openQuickCreate('FOCUS')">
+                  <Plus class="size-4" aria-hidden="true" />
+                  添加第一项任务
+                </Button>
+              </div>
+            </section>
 
+            <section v-if="completedTasks.length" class="mt-8">
+              <Button
+                variant="ghost"
+                class="h-auto min-h-0 w-full justify-start gap-2 rounded-none border-b border-[var(--border-subtle)] px-0 pb-3 text-left text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)] hover:bg-transparent"
+                :aria-expanded="showCompleted"
+                @click="showCompleted = !showCompleted"
+              >
+                <ChevronDown class="size-4 transition-transform" :class="{ '-rotate-90': !showCompleted }" aria-hidden="true" />
+                <span>已完成</span>
+                <span class="text-sm font-normal text-[var(--text-tertiary)]">· {{ completedTasks.length }}</span>
+              </Button>
+              <div v-if="showCompleted">
+                <TaskRow
+                  v-for="task in completedTasks"
+                  :key="task.id"
+                  :task="task"
+                  :selected="today.selectedTaskId === task.id"
+                  :busy="today.busyTaskId === task.id"
+                  @select="selectTask(task)"
+                  @toggle="toggleTask(task)"
+                />
+              </div>
+            </section>
           </template>
         </div>
       </main>
