@@ -86,7 +86,7 @@ function submit() {
         maxlength="160"
         placeholder="任务名称"
         aria-label="任务名称"
-        class="h-10 rounded-none border-x-0 border-t-0 border-b border-[var(--border-strong)] bg-transparent px-0 text-lg font-semibold tracking-[-0.02em] shadow-none focus:border-[var(--accent-primary)] focus-visible:border-[var(--accent-primary)] focus-visible:ring-0"
+        class="h-10 !rounded-none !border-x-0 !border-t-0 !border-b !border-[var(--border-strong)] bg-transparent px-0 text-lg font-semibold tracking-[-0.02em] shadow-none focus:!border-transparent focus:!ring-0 focus:!shadow-[inset_0_-1px_0_var(--accent-primary)] focus-visible:!ring-0"
       />
       <Textarea
         v-model="form.description"
