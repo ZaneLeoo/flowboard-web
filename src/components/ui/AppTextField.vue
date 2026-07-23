@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+
 const model = defineModel<string>({ default: '' })
 
 withDefaults(defineProps<{
@@ -20,8 +23,8 @@ withDefaults(defineProps<{
 
 <template>
   <div class="grid gap-2">
-    <label :for="id" class="text-sm font-semibold text-[var(--text-primary)]">{{ label }}</label>
-    <input
+    <Label :for="id">{{ label }}</Label>
+    <Input
       :id="id"
       v-model="model"
       :type="type"
@@ -29,9 +32,8 @@ withDefaults(defineProps<{
       :disabled="disabled"
       :aria-invalid="Boolean(error)"
       :aria-describedby="error ? `${id}-error` : hint ? `${id}-hint` : undefined"
-      class="min-h-12 w-full rounded-xl border bg-white px-3.5 text-[15px] text-[var(--text-primary)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--text-tertiary)] disabled:cursor-not-allowed disabled:bg-[var(--surface-muted)]"
-      :class="error ? 'border-[var(--danger)] shadow-[0_0_0_3px_var(--danger-soft)]' : 'border-[var(--border-subtle)] focus:border-[var(--accent-primary)] focus:shadow-[0_0_0_3px_var(--accent-soft)]'"
-    >
+      :class="error ? 'border-[var(--danger)] ring-4 ring-[var(--danger-soft)]' : 'min-h-12 text-[15px]'"
+    />
     <p v-if="error" :id="`${id}-error`" class="text-sm leading-5 text-[var(--danger)]">{{ error }}</p>
     <p v-else-if="hint" :id="`${id}-hint`" class="text-sm leading-5 text-[var(--text-tertiary)]">{{ hint }}</p>
   </div>

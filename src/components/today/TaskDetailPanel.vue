@@ -2,8 +2,9 @@
 import { Icon } from '@iconify/vue'
 import { computed } from 'vue'
 
+import { Checkbox } from '@/components/ui/checkbox'
 import type { Task } from '../../features/workspace/api'
-import AppButton from '../ui/AppButton.vue'
+import { Button } from '../ui/button'
 
 const props = defineProps<{
   task: Task
@@ -41,17 +42,14 @@ const todayLabel = computed(() => ({
   <aside class="h-fit overflow-hidden rounded-[1.5rem] border border-white/90 bg-[var(--surface-panel)] shadow-[var(--shadow-panel)] xl:sticky xl:top-4 xl:max-h-[calc(100svh-2rem)] xl:overflow-y-auto">
     <div class="flex items-center justify-between p-5 pb-3">
       <span class="text-xs font-semibold tracking-[0.08em] text-[var(--text-tertiary)]">任务详情</span>
-      <button class="grid size-8 place-items-center rounded-lg text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-muted)]" type="button" aria-label="关闭详情" @click="$emit('close')">
+      <Button variant="ghost" size="icon-sm" aria-label="关闭详情" @click="$emit('close')">
         <Icon icon="solar:close-circle-linear" class="size-5" aria-hidden="true" />
-      </button>
+      </Button>
     </div>
 
     <div class="px-5 pb-6">
       <div class="flex items-start gap-3">
-        <button class="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border transition-transform active:scale-90" :class="task.status === 'DONE' ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)] text-white' : 'border-[var(--border-strong)] bg-white text-transparent'" type="button" :disabled="busy" :aria-label="task.status === 'DONE' ? '重开任务' : '完成任务'" @click="$emit('toggle')">
-          <Icon v-if="busy" icon="solar:refresh-linear" class="size-3 animate-spin" aria-hidden="true" />
-          <Icon v-else-if="task.status === 'DONE'" icon="solar:check-read-linear" class="size-3.5" aria-hidden="true" />
-        </button>
+        <Checkbox :model-value="task.status === 'DONE'" class="mt-0.5 size-5 rounded-full" :disabled="busy" :aria-label="task.status === 'DONE' ? '重开任务' : '完成任务'" @update:model-value="$emit('toggle')" />
         <h2 class="min-w-0 text-xl font-semibold leading-7 tracking-[-0.03em] text-[var(--text-primary)]" :class="{ 'line-through text-[var(--text-secondary)]': task.status === 'DONE' }">{{ task.title }}</h2>
       </div>
 
@@ -84,12 +82,12 @@ const todayLabel = computed(() => ({
       </section>
 
       <div class="mt-8 grid grid-cols-2 gap-3">
-        <AppButton variant="secondary" @click="$emit('edit')"><Icon icon="solar:pen-linear" class="size-4" aria-hidden="true" />编辑</AppButton>
-        <AppButton :loading="busy" @click="$emit('toggle')">{{ task.status === 'DONE' ? '重新打开' : '标记完成' }}</AppButton>
+        <Button variant="secondary" @click="$emit('edit')"><Icon icon="solar:pen-linear" class="size-4" aria-hidden="true" />编辑</Button>
+        <Button :loading="busy" @click="$emit('toggle')">{{ task.status === 'DONE' ? '重新打开' : '标记完成' }}</Button>
       </div>
-      <button class="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[var(--danger)] transition-opacity hover:opacity-75" type="button" :disabled="busy" @click="$emit('delete')">
+      <Button variant="ghost" class="mt-4 !min-h-10 !px-0 text-[var(--danger)] hover:!bg-transparent hover:opacity-75" :disabled="busy" @click="$emit('delete')">
         <Icon icon="solar:trash-bin-trash-linear" class="size-4" aria-hidden="true" />删除任务
-      </button>
+      </Button>
     </div>
   </aside>
 </template>

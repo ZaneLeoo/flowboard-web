@@ -25,6 +25,15 @@ body {
   min-height: 100svh;
 }
 
+.flowboard-sonner {
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 1rem !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  box-shadow: var(--shadow-panel) !important;
+  color: var(--text-primary) !important;
+  font-family: inherit !important;
+}
+
 button,
 input,
 textarea,

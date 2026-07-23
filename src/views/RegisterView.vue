@@ -5,8 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import AuthFrame from '../components/auth/AuthFrame.vue'
-import AppButton from '../components/ui/AppButton.vue'
 import AppTextField from '../components/ui/AppTextField.vue'
+import { Button } from '../components/ui/button'
 import { ApiRequestError } from '../lib/http'
 import { useAuthStore } from '../stores/auth'
 
@@ -78,10 +78,10 @@ function errorMessage(code: string) {
       <AppTextField id="register-name" v-model="form.displayName" autocomplete="name" :label="t('auth.fields.displayName')" :error="fieldErrors.displayName" />
       <AppTextField id="register-email" v-model="form.email" type="email" autocomplete="email" :label="t('auth.fields.email')" :error="fieldErrors.email" />
       <AppTextField id="register-password" v-model="form.password" type="password" autocomplete="new-password" :label="t('auth.fields.password')" :hint="t('auth.fields.passwordHint')" :error="fieldErrors.password" />
-      <AppButton type="submit" :loading="isSubmitting" class="mt-1 w-full">
+      <Button type="submit" :loading="isSubmitting" class="mt-1 w-full">
         <Icon v-if="!isSubmitting" icon="solar:arrow-right-linear" class="size-4" aria-hidden="true" />
         {{ t('auth.register.submit') }}
-      </AppButton>
+      </Button>
     </form>
   </AuthFrame>
 </template>

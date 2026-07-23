@@ -3,13 +3,15 @@ import { Icon } from '@iconify/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
 
 import AppShell from '../components/layout/AppShell.vue'
 import ProjectEditorDialog from '../components/today/ProjectEditorDialog.vue'
 import TaskDetailPanel from '../components/today/TaskDetailPanel.vue'
 import TaskEditorDialog from '../components/today/TaskEditorDialog.vue'
 import TaskGroup from '../components/today/TaskGroup.vue'
-import AppButton from '../components/ui/AppButton.vue'
+import ConfirmDialog from '../components/ui/ConfirmDialog.vue'
+import { Button } from '../components/ui/button'
 import type { ProjectDraft, Task, TaskDraft } from '../features/workspace/api'
 import { useAuthStore } from '../stores/auth'
 import { useTodayStore } from '../stores/today'
@@ -26,7 +28,7 @@ const editingTask = ref<Task | null>(null)
 const taskSubmitting = ref(false)
 const projectDialogOpen = ref(false)
 const projectSubmitting = ref(false)
-const notice = ref<{ type: 'success' | 'error'; text: string } | null>(null)
+const taskToDelete = ref<Task | null>(null)
 
 const displayName = computed(() => auth.user?.displayName ?? '')
 const email = computed(() => auth.user?.email ?? '')
@@ -48,13 +50,6 @@ const focusTasks = computed(() => filterTasks(today.data.focus))
 const planTasks = computed(() => filterTasks(today.data.plan))
 const laterTasks = computed(() => filterTasks(today.data.later))
 const doneTasks = computed(() => filterTasks(today.data.done))
-
-function showNotice(type: 'success' | 'error', text: string) {
-  notice.value = { type, text }
-  window.setTimeout(() => {
-    if (notice.value?.text === text) notice.value = null
-  }, 4200)
-}
 
 function readableError(error: unknown) {
   return error instanceof Error ? error.message : '操作未能完成，请稍后再试'
@@ -79,16 +74,16 @@ async function saveTask(input: TaskDraft) {
   try {
     if (editingTask.value) {
       await today.updateTask(editingTask.value, input)
-      showNotice('success', '任务已保存')
+      toast.success('任务已保存')
     }
     else {
       await today.createTask(input)
-      showNotice('success', '任务已创建，并安排到今天')
+      toast.success('任务已创建，并安排到今天')
     }
     taskDialogOpen.value = false
   }
   catch (error) {
-    showNotice('error', readableError(error))
+    toast.error(readableError(error))
   }
   finally {
     taskSubmitting.value = false
@@ -98,21 +93,27 @@ async function saveTask(input: TaskDraft) {
 async function toggleTask(task: Task) {
   try {
     await today.toggleComplete(task)
-    showNotice('success', task.status === 'DONE' ? '任务已重新打开' : '任务已完成')
+    toast.success(task.status === 'DONE' ? '任务已重新打开' : '任务已完成')
   }
   catch (error) {
-    showNotice('error', readableError(error))
+    toast.error(readableError(error))
   }
 }
 
-async function removeTask(task: Task) {
-  if (!window.confirm(`确定删除“${task.title}”吗？`)) return
+function requestDelete(task: Task) {
+  taskToDelete.value = task
+}
+
+async function removeTask() {
+  const task = taskToDelete.value
+  if (!task) return
   try {
     await today.deleteTask(task)
-    showNotice('success', '任务已删除')
+    taskToDelete.value = null
+    toast.success('任务已删除')
   }
   catch (error) {
-    showNotice('error', readableError(error))
+    toast.error(readableError(error))
   }
 }
 
@@ -121,10 +122,10 @@ async function createProject(input: ProjectDraft) {
   try {
     await today.createProject(input)
     projectDialogOpen.value = false
-    showNotice('success', '项目已创建')
+    toast.success('项目已创建')
   }
   catch (error) {
-    showNotice('error', readableError(error))
+    toast.error(readableError(error))
   }
   finally {
     projectSubmitting.value = false
@@ -163,7 +164,7 @@ onMounted(() => today.load())
             <p v-if="selectedProject" class="mb-2 inline-flex items-center gap-2 rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--accent-primary)]">
               <Icon icon="solar:folder-linear" class="size-3.5" aria-hidden="true" />
               {{ selectedProject.name }}
-              <button class="ml-0.5 text-[var(--accent-primary)]/70 transition-opacity hover:opacity-100" type="button" aria-label="清除项目筛选" @click="selectedProjectId = null">×</button>
+              <Button variant="ghost" size="icon-sm" class="-my-1 ml-0.5 size-5 rounded-full p-0 text-[var(--accent-primary)]/70 hover:bg-transparent" aria-label="清除项目筛选" @click="selectedProjectId = null">×</Button>
             </p>
             <h1 class="text-4xl font-semibold leading-[1.04] tracking-[-0.055em] text-[var(--text-primary)] sm:text-5xl">今天</h1>
             <p class="mt-3 text-[15px] text-[var(--text-secondary)]">{{ dateLabel }}</p>
@@ -173,18 +174,13 @@ onMounted(() => today.load())
               <Icon icon="solar:bolt-circle-linear" class="size-4 text-[var(--accent-primary)]" aria-hidden="true" />
               焦点 {{ focusTasks.length }} 项
             </span>
-            <AppButton @click="openCreateTask"><Icon icon="solar:add-circle-linear" class="size-4" aria-hidden="true" />新建任务</AppButton>
+            <Button @click="openCreateTask"><Icon icon="solar:add-circle-linear" class="size-4" aria-hidden="true" />新建任务</Button>
           </div>
         </header>
 
-        <div v-if="notice" class="mt-6 flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm" :class="notice.type === 'success' ? 'border-[#bae5c7] bg-[var(--success-soft)] text-[#176d3e]' : 'border-[#f2c8cc] bg-[var(--danger-soft)] text-[var(--danger)]'" role="status">
-          <Icon :icon="notice.type === 'success' ? 'solar:check-circle-linear' : 'solar:danger-circle-linear'" class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <p>{{ notice.text }}</p>
-        </div>
-
         <div v-if="today.error" class="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-[#f2c8cc] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger)]">
           <span>{{ today.error }}</span>
-          <button class="font-semibold underline underline-offset-4" type="button" @click="today.load()">重试</button>
+          <Button variant="ghost" size="sm" class="-my-1 h-auto min-h-0 px-0 font-semibold text-[var(--danger)] underline underline-offset-4 hover:bg-transparent" @click="today.load()">重试</Button>
         </div>
 
         <div v-if="today.isLoading" class="mt-10 grid gap-4" aria-label="正在加载今天的任务">
@@ -207,23 +203,24 @@ onMounted(() => today.load())
                 <p class="mt-1 text-sm text-[var(--text-secondary)]">用一眼看清每个项目的推进情况。</p>
               </div>
             </div>
-            <button class="hidden min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-[var(--accent-primary)] transition-colors hover:bg-white sm:inline-flex" type="button" @click="projectDialogOpen = true"><Icon icon="solar:add-circle-linear" class="size-4" aria-hidden="true" />新建项目</button>
+            <Button variant="ghost" size="sm" class="hidden text-[var(--accent-primary)] hover:bg-white sm:inline-flex" @click="projectDialogOpen = true"><Icon icon="solar:add-circle-linear" class="size-4" aria-hidden="true" />新建项目</Button>
           </div>
           <div v-if="today.data.projects.length" class="mt-5 grid gap-3">
-            <button v-for="project in today.data.projects" :key="project.id" class="grid w-full grid-cols-[minmax(7rem,1fr)_minmax(6rem,1.5fr)_auto] items-center gap-3 rounded-xl bg-white/70 px-3 py-3 text-left transition-colors hover:bg-white" type="button" @click="selectedProjectId = selectedProjectId === project.id ? null : project.id">
+            <Button v-for="project in today.data.projects" :key="project.id" variant="ghost" class="grid h-auto w-full grid-cols-[minmax(7rem,1fr)_minmax(6rem,1.5fr)_auto] items-center justify-stretch gap-3 rounded-xl bg-white/70 px-3 py-3 text-left hover:bg-white" @click="selectedProjectId = selectedProjectId === project.id ? null : project.id">
               <span class="flex min-w-0 items-center gap-2"><span class="size-2 shrink-0 rounded-full" :class="{ BLUE: 'bg-[#4e8ff5]', VIOLET: 'bg-[#9a77ed]', GREEN: 'bg-[#48a66b]', AMBER: 'bg-[#e9a11d]', ROSE: 'bg-[#df6e91]' }[project.color]" /><span class="truncate text-sm font-semibold text-[var(--text-primary)]">{{ project.name }}</span></span>
               <span class="h-1.5 overflow-hidden rounded-full bg-[var(--surface-muted)]"><span class="block h-full rounded-full bg-[var(--accent-primary)]" :style="{ width: `${project.completionRate}%` }" /></span>
               <span class="text-xs font-semibold text-[var(--text-secondary)]">{{ project.totalCount ? `${project.completionRate}%` : '未开始' }}</span>
-            </button>
+            </Button>
           </div>
           <div v-else class="mt-5 rounded-xl bg-white/70 px-4 py-5 text-sm text-[var(--text-secondary)]">创建一个项目，把相关任务放到一起推进。</div>
         </section>
       </section>
 
-      <TaskDetailPanel v-if="selectedTask" class="hidden xl:block" :task="selectedTask" :busy="today.busyTaskId === selectedTask.id" @close="today.selectedTaskId = null" @toggle="toggleTask(selectedTask)" @edit="openEditTask(selectedTask)" @delete="removeTask(selectedTask)" />
+      <TaskDetailPanel v-if="selectedTask" class="hidden xl:block" :task="selectedTask" :busy="today.busyTaskId === selectedTask.id" @close="today.selectedTaskId = null" @toggle="toggleTask(selectedTask)" @edit="openEditTask(selectedTask)" @delete="requestDelete(selectedTask)" />
     </main>
 
     <TaskEditorDialog :open="taskDialogOpen" :projects="today.projects" :task="editingTask" :default-date="today.date" :submitting="taskSubmitting" @close="taskDialogOpen = false" @submit="saveTask" />
     <ProjectEditorDialog :open="projectDialogOpen" :submitting="projectSubmitting" @close="projectDialogOpen = false" @submit="createProject" />
+    <ConfirmDialog :open="Boolean(taskToDelete)" title="删除任务？" :description="taskToDelete ? `“${taskToDelete.title}”将从工作台移除。` : ''" confirm-label="删除任务" :loading="today.busyTaskId === taskToDelete?.id" @close="taskToDelete = null" @confirm="removeTask" />
   </AppShell>
 </template>

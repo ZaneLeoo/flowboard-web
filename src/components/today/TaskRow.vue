@@ -2,6 +2,7 @@
 import { Icon } from '@iconify/vue'
 import { computed } from 'vue'
 
+import { Checkbox } from '@/components/ui/checkbox'
 import type { Task } from '../../features/workspace/api'
 
 const props = defineProps<{
@@ -42,17 +43,14 @@ const dueLabel = computed(() => {
     @keydown.enter.prevent="$emit('select')"
     @keydown.space.prevent="$emit('select')"
   >
-    <button
-      class="grid size-5 place-items-center rounded-full border transition-[transform,background-color,border-color] duration-150 active:scale-90"
-      :class="task.status === 'DONE' ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)] text-white' : 'border-[var(--border-strong)] bg-white text-transparent hover:border-[var(--accent-primary)]'"
-      type="button"
+    <Checkbox
+      :model-value="task.status === 'DONE'"
+      class="size-5 rounded-full"
       :disabled="busy"
       :aria-label="task.status === 'DONE' ? `重开：${task.title}` : `完成：${task.title}`"
-      @click.stop="$emit('toggle')"
-    >
-      <Icon v-if="busy" icon="solar:refresh-linear" class="size-3 animate-spin" aria-hidden="true" />
-      <Icon v-else-if="task.status === 'DONE'" icon="solar:check-read-linear" class="size-3.5" aria-hidden="true" />
-    </button>
+      @click.stop
+      @update:model-value="$emit('toggle')"
+    />
 
     <div class="min-w-0 py-3">
       <p class="truncate text-sm font-medium text-[var(--text-primary)]" :class="{ 'text-[var(--text-secondary)] line-through': task.status === 'DONE' }">

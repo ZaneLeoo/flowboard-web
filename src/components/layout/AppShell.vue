@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import type { Project } from '../../features/workspace/api'
 import BrandLogo from '../ui/BrandLogo.vue'
+import { Button } from '../ui/button'
 
 withDefaults(defineProps<{
   displayName: string
@@ -52,22 +53,22 @@ function projectColorClass(color: Project['color']) {
         <section class="mt-7">
           <div class="flex items-center justify-between px-3">
             <p class="text-[11px] font-semibold tracking-[0.1em] text-[var(--text-tertiary)]">{{ t('nav.projects') }}</p>
-            <button class="grid size-7 place-items-center rounded-lg text-[var(--text-secondary)] transition-colors hover:bg-white hover:text-[var(--accent-primary)]" type="button" aria-label="新建项目" @click="$emit('createProject')">
+            <Button variant="ghost" size="icon-sm" class="text-[var(--text-secondary)] hover:bg-white hover:text-[var(--accent-primary)]" aria-label="新建项目" @click="$emit('createProject')">
               <Icon icon="solar:add-circle-linear" class="size-4" aria-hidden="true" />
-            </button>
+            </Button>
           </div>
           <div class="mt-2 grid gap-1">
-            <button
+            <Button
               v-for="project in projects"
               :key="project.id"
-              class="flex min-h-10 items-center gap-2.5 rounded-xl px-3 text-left text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-white hover:text-[var(--text-primary)]"
+              variant="ghost"
+              class="flex min-h-10 w-full items-center justify-start gap-2.5 rounded-xl px-3 text-left text-sm font-medium text-[var(--text-secondary)] hover:bg-white hover:text-[var(--text-primary)]"
               :class="{ 'bg-white text-[var(--text-primary)] shadow-[var(--shadow-subtle)]': selectedProjectId === project.id }"
-              type="button"
               @click="$emit('selectProject', project.id)"
             >
               <span class="size-2 shrink-0 rounded-full" :class="projectColorClass(project.color)" />
               <span class="truncate">{{ project.name }}</span>
-            </button>
+            </Button>
             <p v-if="!projects.length" class="px-3 py-2 text-xs leading-5 text-[var(--text-tertiary)]">创建一个项目，开始整理你的节奏。</p>
           </div>
         </section>
@@ -83,10 +84,10 @@ function projectColorClass(color: Project['color']) {
                 <p class="truncate text-xs text-[var(--text-tertiary)]">{{ email }}</p>
               </div>
             </div>
-            <button class="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]" type="button" @click="$emit('logout')">
+            <Button variant="ghost" class="mt-3 w-full text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]" @click="$emit('logout')">
               <Icon icon="solar:logout-2-linear" class="size-4" aria-hidden="true" />
               {{ t('auth.logout') }}
-            </button>
+            </Button>
           </div>
         </div>
       </aside>
@@ -96,9 +97,9 @@ function projectColorClass(color: Project['color']) {
           <RouterLink to="/today" class="flex items-center">
             <BrandLogo size="sm" />
           </RouterLink>
-          <button class="grid size-10 place-items-center rounded-xl text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]" type="button" :aria-label="t('auth.logout')" @click="$emit('logout')">
+          <Button variant="ghost" size="icon" :aria-label="t('auth.logout')" @click="$emit('logout')">
             <Icon icon="solar:logout-2-linear" class="size-5" aria-hidden="true" />
-          </button>
+          </Button>
         </header>
         <slot />
       </div>
