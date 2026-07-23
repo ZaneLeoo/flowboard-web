@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 
 import AuthMosaic from './AuthMosaic.vue'
+import BrandLogo from '../ui/BrandLogo.vue'
 
 const { t } = useI18n()
 
@@ -15,12 +15,7 @@ defineProps<{
   <main class="auth-canvas flex min-h-svh items-center px-4 py-5 sm:px-8 sm:py-10">
     <div class="auth-surface mx-auto grid w-full max-w-[76rem] overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[var(--shadow-float)] lg:min-h-[40rem] lg:grid-cols-[minmax(0,1.1fr)_minmax(25rem,0.9fr)]">
       <aside class="relative hidden min-h-[40rem] overflow-hidden border-r border-[var(--border-subtle)] bg-[var(--surface-auth-art)] p-10 lg:flex lg:flex-col xl:p-14">
-        <RouterLink to="/" class="relative z-10 inline-flex w-fit items-center gap-2.5 text-lg font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
-          <span class="grid size-9 place-items-center rounded-xl bg-[var(--surface-ink)] text-white shadow-[0_9px_18px_rgba(34,38,48,0.14)]">
-            <Icon icon="solar:command-linear" class="size-5" aria-hidden="true" />
-          </span>
-          {{ t('app.name') }}
-        </RouterLink>
+        <BrandLogo class="relative z-10" />
 
         <div class="flex flex-1 items-center justify-center py-10">
           <AuthMosaic />

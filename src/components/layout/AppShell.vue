@@ -2,6 +2,8 @@
 import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 
+import BrandLogo from '../ui/BrandLogo.vue'
+
 defineProps<{
   displayName: string
   email: string
@@ -18,11 +20,8 @@ const { t } = useI18n()
   <div class="min-h-svh bg-[var(--surface-canvas)] p-3 sm:p-4">
     <div class="mx-auto grid min-h-[calc(100svh-1.5rem)] max-w-[1600px] xl:grid-cols-[15.5rem_minmax(0,1fr)] xl:gap-4">
       <aside class="hidden min-h-0 rounded-[1.75rem] border border-white/80 bg-[var(--surface-sidebar)] p-3 shadow-[var(--shadow-subtle)] xl:flex xl:flex-col">
-        <RouterLink to="/today" class="flex min-h-12 items-center gap-3 rounded-xl px-2.5 text-lg font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
-          <span class="grid size-8 place-items-center rounded-[0.7rem] bg-[var(--surface-ink)] text-white shadow-[0_8px_18px_rgba(24,27,36,0.16)]">
-            <Icon icon="solar:command-linear" class="size-4" aria-hidden="true" />
-          </span>
-          {{ t('app.name') }}
+        <RouterLink to="/today" class="flex min-h-12 items-center rounded-xl px-2.5">
+          <BrandLogo />
         </RouterLink>
 
         <nav class="mt-8 grid gap-1" :aria-label="t('nav.label')">
@@ -58,11 +57,8 @@ const { t } = useI18n()
 
       <div class="min-w-0">
         <header class="mb-4 flex min-h-14 items-center justify-between rounded-2xl border border-white/80 bg-[var(--surface-raised)] px-4 shadow-[var(--shadow-subtle)] xl:hidden">
-          <RouterLink to="/today" class="flex items-center gap-2 text-base font-semibold tracking-[-0.035em] text-[var(--text-primary)]">
-            <span class="grid size-8 place-items-center rounded-lg bg-[var(--surface-ink)] text-white">
-              <Icon icon="solar:command-linear" class="size-4" aria-hidden="true" />
-            </span>
-            {{ t('app.name') }}
+          <RouterLink to="/today" class="flex items-center">
+            <BrandLogo size="sm" />
           </RouterLink>
           <button class="grid size-10 place-items-center rounded-xl text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]" type="button" :aria-label="t('auth.logout')" @click="$emit('logout')">
             <Icon icon="solar:logout-2-linear" class="size-5" aria-hidden="true" />
