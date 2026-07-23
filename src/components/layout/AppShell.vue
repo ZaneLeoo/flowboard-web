@@ -2,18 +2,36 @@
 import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 
+import type { Project } from '../../features/workspace/api'
 import BrandLogo from '../ui/BrandLogo.vue'
 
-defineProps<{
+withDefaults(defineProps<{
   displayName: string
   email: string
-}>()
+  projects?: Project[]
+  selectedProjectId?: string | null
+}>(), {
+  projects: () => [],
+  selectedProjectId: null,
+})
 
 defineEmits<{
   logout: []
+  createProject: []
+  selectProject: [projectId: string]
 }>()
 
 const { t } = useI18n()
+
+function projectColorClass(color: Project['color']) {
+  return {
+    BLUE: 'bg-[#4e8ff5]',
+    VIOLET: 'bg-[#9a77ed]',
+    GREEN: 'bg-[#48a66b]',
+    AMBER: 'bg-[#e9a11d]',
+    ROSE: 'bg-[#df6e91]',
+  }[color]
+}
 </script>
 
 <template>
@@ -29,12 +47,30 @@ const { t } = useI18n()
             <Icon icon="solar:calendar-date-linear" class="size-5" aria-hidden="true" />
             {{ t('nav.today') }}
           </RouterLink>
-          <span class="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--text-tertiary)]" :aria-label="t('nav.projectsPending')">
-            <Icon icon="solar:folder-linear" class="size-5" aria-hidden="true" />
-            {{ t('nav.projects') }}
-            <span class="ml-auto rounded-full bg-[var(--surface-muted)] px-2 py-0.5 text-[11px] font-semibold">{{ t('common.soon') }}</span>
-          </span>
         </nav>
+
+        <section class="mt-7">
+          <div class="flex items-center justify-between px-3">
+            <p class="text-[11px] font-semibold tracking-[0.1em] text-[var(--text-tertiary)]">{{ t('nav.projects') }}</p>
+            <button class="grid size-7 place-items-center rounded-lg text-[var(--text-secondary)] transition-colors hover:bg-white hover:text-[var(--accent-primary)]" type="button" aria-label="新建项目" @click="$emit('createProject')">
+              <Icon icon="solar:add-circle-linear" class="size-4" aria-hidden="true" />
+            </button>
+          </div>
+          <div class="mt-2 grid gap-1">
+            <button
+              v-for="project in projects"
+              :key="project.id"
+              class="flex min-h-10 items-center gap-2.5 rounded-xl px-3 text-left text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-white hover:text-[var(--text-primary)]"
+              :class="{ 'bg-white text-[var(--text-primary)] shadow-[var(--shadow-subtle)]': selectedProjectId === project.id }"
+              type="button"
+              @click="$emit('selectProject', project.id)"
+            >
+              <span class="size-2 shrink-0 rounded-full" :class="projectColorClass(project.color)" />
+              <span class="truncate">{{ project.name }}</span>
+            </button>
+            <p v-if="!projects.length" class="px-3 py-2 text-xs leading-5 text-[var(--text-tertiary)]">创建一个项目，开始整理你的节奏。</p>
+          </div>
+        </section>
 
         <div class="mt-auto border-t border-[var(--border-subtle)] pt-3">
           <div class="rounded-2xl bg-white/75 p-3">
